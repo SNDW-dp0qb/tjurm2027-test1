@@ -7,8 +7,13 @@ int my_strlen(char *str) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    int c=0;
+    while(str[c]!='\0'){
+        c++;
+    }
+    return  c;
 }
+
 
 
 // 练习2，实现库函数strcat
@@ -19,6 +24,15 @@ void my_strcat(char *str_1, char *str_2) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    while(*str_1 != '\0'){
+        str_1++;
+    }
+    while(*str_2 != '\0'){
+        *str_1 = *str_2;
+        str_1++;
+        str_2++;
+    }
+    *str_1 = '\0';
 }
 
 
@@ -31,7 +45,21 @@ char* my_strstr(char *s, char *p) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    for(int i =0; i<my_strlen(s); i++){
+        if(s[i] == p[0]){
+            int j = 0;
+            while(s[i+j] == p[j] && j<my_strlen(p)){
+                j++;
+            }
+            if(j == my_strlen(p)){
+                return &s[i];
+            }
+            else{
+                return 0;
+            }
+        }
+
+    }
 }
 
 
@@ -97,6 +125,16 @@ void rgb2gray(float *in, float *out, int h, int w) {
 
     // IMPLEMENT YOUR CODE HERE
     // ...
+    for(int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            int n = (i * w + j) * 3; 
+            int o = i * w + j;      
+            float R = in[n];
+            float G = in[n + 1];
+            float B = in[n + 2];
+            out[o] = 0.2989 * R + 0.5870 * G + 0.1140 * B;
+        }
+    }
 }
 
 // 练习5，实现图像处理算法 resize：缩小或放大图像
@@ -197,6 +235,27 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
      */
 
     int new_h = h * scale, new_w = w * scale;
+    for(int i = 0; i < new_h; i++) {
+        for (int j = 0; j < new_w; j++) {
+            float x0 = j / scale, y0 = i / scale;
+            int x1 = static_cast<int>(x0), y1 = static_cast<int>(y0);
+            int x2 = x1 + 1, y2 = y1 + 1;
+
+            if (x2 >= w) x2 = w - 1;
+            if (y2 >= h) y2 = h - 1;
+
+            float dx = x0 - x1, dy = y0 - y1;
+
+            for (int k = 0; k < c; k++) {
+                float P1 = in[(y1 * w + x1) * c + k];
+                float P2 = in[(y1 * w + x2) * c + k];
+                float P3 = in[(y2 * w + x1) * c + k];
+                float P4 = in[(y2 * w + x2) * c + k];
+
+                out[(i * new_w + j) * c + k] =P1 * (1 - dx) * (1 - dy) +P2 * dx * (1 - dy) +P3 * (1 - dx) * dy +P4 * dx * dy;
+            }
+        }
+    }
     // IMPLEMENT YOUR CODE HERE
 
 }
@@ -221,4 +280,31 @@ void hist_eq(float *in, int h, int w) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    float hist[256]= {0};
+    float hh[256]= {0};
+    float m[256] = {0};
+    int f=h*w;
+    for(int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            int n = i * w + j;      
+            int pv = static_cast<int>(in[n]);
+            hist[pv]++;
+        }
+    }
+    hh[0] = hist[0];
+    for(int i = 1; i < 256; i++) {
+        hh[i] = hist[i]+hh[i-1];
+    }
+    for(int i = 0; i < 256; i++) {
+        int pv = (int)((hh[i]/f)*255+0.5);
+        if (pv>255) pv=255;
+        if(pv<0) pv=0;
+        m[i] = (float)(pv);
+    }
+    for(int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            int n = i * w + j;      
+            in[n] = (int)(m[static_cast<int>(in[n])]);
+        }
+    }
 }
